@@ -5,7 +5,20 @@ using API.Models;
 using System.Data.SqlClient;
 using Dapper;
 
+public interface IPlayerInfo
+{
+  string PlayerName { get; set; }
+}
+
 namespace API.Controllers
+{
+  public class PlayerInfo : IPlayerInfo
+  {
+    public string PlayerName { get; set; } = string.Empty;
+  }
+}
+
+  namespace API.Controllers
 {
   [Route("api/player/[controller]")]
   [ApiController]
@@ -19,18 +32,18 @@ namespace API.Controllers
     }
 
     [HttpGet]
-    public async Task<ActionResult<IPlayer>> GetClient()
+    public async Task<ActionResult<List<IPlayerInfo>>> GetPlayers()
     {
       using var connection = new SqlConnection(_configuration.GetConnectionString("Default"));
-      var client = await connection.QueryAsync<IPlayer>("select * from Players");
-      return Ok(client);
+      var players = await connection.QueryAsync<PlayerInfo>("SELECT PlayerName FROM Players");
+      return Ok(players);
     }
 
-    [HttpGet("{Id}")]
-    public async Task<ActionResult<IPlayer>> GetClientById(int id)
+    [HttpGet("{id}")]
+    public async Task<ActionResult<IPlayerInfo>> GetClientById(int id)
     {
       using var connection = new SqlConnection(_configuration.GetConnectionString("Default"));
-      var player = await connection.QueryFirstAsync<IPlayer>("SELECT PlayerName FROM Players WHERE Id = @id",
+      var player = await connection.QueryFirstAsync<PlayerInfo>("SELECT PlayerName FROM Players WHERE Id = @id",
         new { Id = id });
       return Ok(player);
     }

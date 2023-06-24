@@ -20,7 +20,7 @@ namespace API.Controllers
 
   namespace API.Controllers
 {
-  [Route("api/player/[controller]")]
+  [Route("api/player")]
   [ApiController]
   public class PlayerController : ControllerBase
   {
@@ -34,6 +34,8 @@ namespace API.Controllers
     [HttpGet]
     public async Task<ActionResult<List<IPlayerInfo>>> GetPlayers()
     {
+      Console.WriteLine("Request");
+
       using var connection = new SqlConnection(_configuration.GetConnectionString("Default"));
       var players = await connection.QueryAsync<PlayerInfo>("SELECT PlayerName FROM Players");
       return Ok(players);

@@ -7,18 +7,23 @@ using Dapper;
 
 public interface IPlayerInfo
 {
+  int Id { get; set; }
   string PlayerName { get; set; }
+  string? PlayerToken { get; set; }
 }
 
 namespace API.Controllers
 {
   public class PlayerInfo : IPlayerInfo
   {
+    public int Id { get; set; }
     public string PlayerName { get; set; } = string.Empty;
+
+    public string? PlayerToken { get; set; } = string.Empty;
   }
 }
 
-  namespace API.Controllers
+namespace API.Controllers
 {
   [Route("api/player")]
   [ApiController]
@@ -34,9 +39,8 @@ namespace API.Controllers
     [HttpGet]
     public async Task<ActionResult<List<IPlayerInfo>>> GetPlayers()
     {
-      Console.WriteLine("Request");
-
       using var connection = new SqlConnection(_configuration.GetConnectionString("Default"));
+
       var players = await connection.QueryAsync<PlayerInfo>("SELECT PlayerName FROM Players");
       return Ok(players);
     }
@@ -45,8 +49,8 @@ namespace API.Controllers
     public async Task<ActionResult<IPlayerInfo>> GetClientById(int id)
     {
       using var connection = new SqlConnection(_configuration.GetConnectionString("Default"));
-      var player = await connection.QueryFirstAsync<PlayerInfo>("SELECT PlayerName FROM Players WHERE Id = @id",
-        new { Id = id });
+      var player = await connection.QueryFirstAsync<PlayerInfo>("SELECT Id, PlayerName FROM Players WHERE Id = @id",
+        new { id });
       return Ok(player);
     }
 
@@ -61,6 +65,29 @@ namespace API.Controllers
         );
 
       return Ok();
+    }
+
+    [HttpPost("{email}/{password}")]
+    public async Task<ActionResult> PlayerExists(string email, string password)
+    {
+      using var connection = new SqlConnection(_configuration.GetConnectionString("Default"));
+
+      Console.WriteLine(email, password);
+
+      var player = await connection.QueryFirstOrDefaultAsync<PlayerInfo>(
+        "SELECT Id, PlayerName FROM Players WHERE PlayerEmail = @email AND PasswordHash = @password",
+        new { email, password });
+
+      if (player != null)
+      {
+        player.PlayerToken = "qwertjjks123";
+
+        return Ok(player);
+      }
+      else
+      {
+        return Ok(false);
+      }
     }
   }
 }
